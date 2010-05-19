@@ -59,7 +59,7 @@ module Rasstimer
 		end
 
 		def to_s
-			@format.map { |k| @data[k] }.join(',').map { |line| 'Dialogue: ' + line }
+			"Dialogue: " + @format.map { |k| @data[k] }.join(',')
 		end
 
 		def method_missing(name, *args, &block)
@@ -102,8 +102,8 @@ module Rasstimer
 				end
 			end
 
-			format    = []
 			in_events = false
+			format    = nil
 
 			file.each_line do |line|
 				save_line = line
@@ -128,11 +128,11 @@ module Rasstimer
 		def shift_dialogues!(start, stop, msec)
 			stop = (@dialogues.length - 1) if stop == -1
 
-			if start < 0
-				raise "Selected dialouges start index cant be negative"
+			if start.to_i < 0
+				raise "Selected dialogues start index cant be negative"
 			end
 
-			if stop > @dialouges.length - 1
+			if stop.to_i > (@dialogues.length - 1)
 				raise "Selected dialogues index cant be larger than dialogues count, given: #{stop}, dialogues count: #{@dialogues.length}"
 			end
 			
@@ -143,9 +143,9 @@ module Rasstimer
 
 		def save(file_name)
 			begin 
-				file = File.open(file, 'w')
+				file = File.open(file_name, 'w')
 			rescue
-				raise "cant open '#{file}' to write"
+				raise "cant open '#{file_name}' to write"
 			end
 
 			@content.each do |line| 
