@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
 require 'getoptlong'
-require 'subtitle.rb'
+require File.dirname(__FILE__)+'/subtitle.rb'
 
 in_path  = ''
 out_path = ''
@@ -56,6 +56,9 @@ when :shift
 when :info
 	sub = Rasstimer::Subtitle.new(in_path)
 	info = sub.info
-	puts "#{info[:dialogues]} dialogue line"
+	puts "#{info[:dialogues_count]} dialogue line"
+	sub.info[:dialogues].each_with_index do |e, i|
+		puts "#{i}: #{e.Text}"
+	end
 	exit
 end

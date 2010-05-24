@@ -63,8 +63,8 @@ module Rasstimer
 		end
 
 		def method_missing(name, *args, &block)
-			if @data.key? name
-				@data[key]
+			if @data.key? name.to_sym
+				@data[name.to_sym]
 			else
 				super
 			end
@@ -157,7 +157,8 @@ module Rasstimer
 
 		def info
 			{ 
-				:dialogues => @dialogues.count,
+				:dialogues_count => @dialogues.count,
+				:dialogues       => @content.values_at(*@dialogues)
 			}
 		end
 	end
