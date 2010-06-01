@@ -16,7 +16,7 @@ module Rasstimer
 
 		def adjust!(msec)
 			if @miliseconds + msec < 0
-				raise "Cant set timing lower than zero"
+				raise "Cant set timing lower than zero, original was: #{@miliseconds}"
 			end
 			@miliseconds += msec
 		end
@@ -42,37 +42,28 @@ module Rasstimer
 		end
 	end
 	
-	class Dialogue 
+	class Dialogue < Hash
 		def initialize(format, line)
-			@format     = format
-			@data       = {}
+			@format = format
 
 			parts = line.sub(/^Dialogue:\s+/, '').split(/,/)
-			parts.each_with_index { |e, i| @data[@format[i]] = e.strip }
+			parts.each_with_index { |e, i| self[@format[i]] = e.strip }
 
 			if parts.length > @format.length
-				@data[:Text] += ',' + parts[@format.length..(parts.length - 1)].join(',')
+				self[:Text] += ',' + parts[@format.length..(parts.length - 1)].join(',')
 			end
 
-			@data[:Start] = Subtime.new(@data[:Start])
-			@data[:End]   = Subtime.new(@data[:End])
+			self[:Start] = Subtime.new(self[:Start])
+			self[:End]   = Subtime.new(self[:End])
 		end
 
 		def to_s
-			"Dialogue: " + @format.map { |k| @data[k] }.join(',')
-		end
-
-		def method_missing(name, *args, &block)
-			if @data.key? name.to_sym
-				@data[name.to_sym]
-			else
-				super
-			end
+			"Dialogue: " + @format.map { |k| self[k] }.join(',')
 		end
 
 		def shift!(msec)
-			@data[:Start].adjust!(msec)
-			@data[:End].adjust!(msec)
+			self[:Start].adjust!(msec)
+			self[:End].adjust!(msec)
 		end
 	end
 

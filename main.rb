@@ -58,7 +58,7 @@ when :info
 	info = sub.info
 	puts "#{info[:dialogues_count]} dialogue line"
 	sub.info[:dialogues].each_with_index do |e, i|
-		puts "#{i}: #{e.Text}"
+		puts "#{i}: #{e[:Text]}"
 	end
 	exit
 end
