@@ -1,5 +1,6 @@
 module Rasstimer
 	class Subtime
+		attr_reader :miliseconds
 		def initialize(str)
 			m = str.match(/^(\d+?):(\d+?):(\d+?)\.(\d+?)$/);
 
@@ -40,6 +41,19 @@ module Rasstimer
 
 			"#{h}:#{m}:#{s}.#{ms}"
 		end
+
+		def -(lhs)
+			 @miliseconds - lhs.miliseconds
+		end
+		
+		def to_seconds
+			msec = @miliseconds
+			s = msec / 1000
+			msec -= s * 1000
+			s.to_s.rjust(2, '0')
+			ms = (msec / 10).to_s.rjust(2, '0')
+			"#{s}.#{ms}"
+		end
 	end
 	
 	class Dialogue < Hash
@@ -64,6 +78,14 @@ module Rasstimer
 		def shift!(msec)
 			self[:Start].adjust!(msec)
 			self[:End].adjust!(msec)
+		end
+
+		def showtime
+			self[:End] - self[:Start]
+		end
+
+		def info
+			"#{self[:Start].to_seconds}\t#{showtime}\t#{self[:Text]}"
 		end
 	end
 
