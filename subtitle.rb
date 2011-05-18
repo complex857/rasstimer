@@ -85,7 +85,7 @@ module Rasstimer
 			@content   = []
 			@dialogues = []
 			
-			if (!file.respond_to? :readlines)
+			unless file.respond_to? :readlines
 				begin 
 					file = File.open(file, 'r')
 				rescue
@@ -118,6 +118,7 @@ module Rasstimer
 
 		def shift_dialogues!(start, stop, msec)
 			stop = (@dialogues.length - 1) if stop == -1
+			p stop
 
 			if start.to_i < 0
 				raise "Selected dialogues start index cant be negative"
@@ -133,17 +134,24 @@ module Rasstimer
 		end
 
 		def save(file_name)
-			begin 
-				file = File.open(file_name, 'w')
-			rescue
-				raise "cant open '#{file_name}' to write"
+			self_opened = false
+			file = file_name if file_name.respond_to? :puts
+
+			unless file_name.respond_to? :puts
+				begin 
+					file = File.open(file_name, 'w')
+					self_opened = true
+				rescue
+					raise "cant open '#{file_name}' to write"
+				end
 			end
 
 			@content.each do |line| 
-				file.puts(line.to_s)
+				file << line.to_s
 			end
 
-			file.close
+			file.close if self_opened
+			return file
 		end
 
 		def info
