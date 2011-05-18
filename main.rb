@@ -32,8 +32,8 @@ opts.each do |option, value|
 		when '--out'
 			out_path = value
 		when '--shift'
-			if m = value.match(/^(-?\d+),(\d+):(-?\d)/)
-				shift = { :start => m[2].to_i, :end => m[3].to_i, :msec => m[1].to_i }
+			if m = value.match(/^(-?\d+),(\d+):?(-?\d)?/)
+				shift = { :start => m[2].to_i, :end => (m.size == 3 ? m[3].to_i : -1), :msec => m[1].to_i }
 			else
 				usage
 				exit

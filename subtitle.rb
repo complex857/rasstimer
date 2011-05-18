@@ -118,7 +118,6 @@ module Rasstimer
 
 		def shift_dialogues!(start, stop, msec)
 			stop = (@dialogues.length - 1) if stop == -1
-			p stop
 
 			if start.to_i < 0
 				raise "Selected dialogues start index cant be negative"
@@ -147,7 +146,8 @@ module Rasstimer
 			end
 
 			@content.each do |line| 
-				file << line.to_s
+				file << line.to_s 
+				file << "\n" unless line.to_s.end_with? "\n"
 			end
 
 			file.close if self_opened
