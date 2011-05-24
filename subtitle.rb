@@ -128,26 +128,34 @@ module Rasstimer
 		end
 
 		def shift_dialogues!(start, stop, msec)
+			stop  = stop.to_i
+			start = start.to_i
+
 			stop = (@dialogues.length - 1) if stop == -1
 
-			if start.to_i < 0
+			if start < 0
 				raise "Selected dialogues start index cant be negative"
 			end
-
-			if stop.to_i > (@dialogues.length - 1)
+			
+			if stop > (@dialogues.length - 1)
 				raise "Selected dialogues index cant be larger than dialogues count, given: #{stop}, dialogues count: #{@dialogues.length}"
 			end
+
+			if stop != -1 && stop < start
+				raise "Stop index cant be smaller than start index!"
+			end
 			
-			for i in @dialogues[start]...@dialogues[stop]
+			
+			for i in @dialogues[start]..@dialogues[stop]
 				@content[i].shift!(msec)
 			end
 		end
 
 		def save(file_name)
 			self_opened = false
-			file = file_name if file_name.respond_to? :puts
+			file = file_name if file_name.respond_to? :"<<"
 
-			unless file_name.respond_to? :puts
+			unless file_name.respond_to? :"<<"
 				begin 
 					file = File.open(file_name, 'w')
 					self_opened = true
@@ -158,8 +166,7 @@ module Rasstimer
 
 			@content.each do |line| 
 				l = line.to_s 
-				file << l
-				file << "\n" unless l.end_with? "\n"
+				file << "#{l}#{"\n" unless l.end_with? "\n"}"
 			end
 
 			file.close if self_opened
