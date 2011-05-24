@@ -1,17 +1,21 @@
 module Rasstimer
 	class Subtime
-		def initialize(str)
-			m = str.match(/^(\d+?):(\d+?):(\d+?)\.(\d+?)$/);
+		attr_reader :miliseconds
 
-			if not m 
-				raise "Unknown time string format: '#{str}'"
+		def initialize(str)
+			m = str.to_s.match(/^(\d+?):(\d+?):(\d+?)\.(\d+?)$/);
+			if m
+				@miliseconds  = 0
+				@miliseconds += m[1].to_i * 3600000
+				@miliseconds += m[2].to_i * 60000
+				@miliseconds += m[3].to_i * 1000
+				@miliseconds += m[4].to_i * 10
+			end
+			if str.is_a? Fixnum
+				@miliseconds = str.to_i
 			end
 
-			@miliseconds  = 0
-			@miliseconds += m[1].to_i * 3600000
-			@miliseconds += m[2].to_i * 60000
-			@miliseconds += m[3].to_i * 1000
-			@miliseconds += m[4].to_i * 10
+			raise "Unknown time string format: '#{str}'" unless @miliseconds
 		end
 
 		def adjust!(msec)
@@ -41,7 +45,9 @@ module Rasstimer
 			"#{h}:#{m}:#{s}.#{ms}"
 		end
 	end
-	
+end
+
+module Rasstimer
 	class Dialogue < Hash
 		def initialize(format, line)
 			@format = format
@@ -66,7 +72,8 @@ module Rasstimer
 			self[:End].adjust!(msec)
 		end
 	end
-
+end
+module Rasstimer
 	class Format < Array
 
 		def initialize(line)
@@ -78,18 +85,22 @@ module Rasstimer
 			'Format: ' + map { |e| e.to_s }.join(', ')
 		end
 	end
+end
 
-
+module Rasstimer
 	class Subtitle 
+		attr_reader :content
+		attr_reader :dialogues
+
 		def initialize(file)
 			@content   = []
 			@dialogues = []
 			
 			unless file.respond_to? :readlines
 				begin 
-					file = File.open(file, 'r')
+					file = File.open(file.to_s, 'r')
 				rescue
-					raise "cant open '#{file}' to read"
+					raise "cant open '#{file.to_s}' to read"
 				end
 			end
 
@@ -146,8 +157,9 @@ module Rasstimer
 			end
 
 			@content.each do |line| 
-				file << line.to_s 
-				file << "\n" unless line.to_s.end_with? "\n"
+				l = line.to_s 
+				file << l
+				file << "\n" unless l.end_with? "\n"
 			end
 
 			file.close if self_opened
