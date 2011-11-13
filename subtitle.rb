@@ -5,7 +5,7 @@ module Rasstimer
 			m = str.match(/^(\d+?):(\d+?):(\d+?)\.(\d+?)$/);
 
 			if not m 
-				raise "Unknown time string format: '#{str}'"
+				fail "Unknown time string format: '#{str}'"
 			end
 
 			@miliseconds  = 0
@@ -17,7 +17,7 @@ module Rasstimer
 
 		def adjust!(msec)
 			if @miliseconds + msec < 0
-				raise "Cant set timing lower than zero, original was: #{@miliseconds}"
+				fail "Cant set timing lower than zero, original was: #{@miliseconds}"
 			end
 			@miliseconds += msec
 		end
@@ -56,53 +56,68 @@ module Rasstimer
 		end
 	end
 	
-	class Dialogue < Hash
+	class Dialogue
 		def initialize(format, line)
+			@data = {};
 			@format = format
 
 			parts = line.sub(/^Dialogue:\s+/, '').split(/,/)
-			parts.each_with_index { |e, i| self[@format[i]] = e.strip }
+			parts.each_with_index { |e, i| @data[@format[i]] = e.strip }
 
 			if parts.length > @format.length
-				self[:Text] += ',' + parts[@format.length..(parts.length - 1)].join(',')
+				@data[:Text] += ',' + parts[@format.length..(parts.length - 1)].join(',')
 			end
 
-			self[:Start] = Subtime.new(self[:Start])
-			self[:End]   = Subtime.new(self[:End])
+			@data[:Start] = Subtime.new(@data[:Start])
+			@data[:End]   = Subtime.new(@data[:End])
 		end
 
 		def to_s
-			"Dialogue: " + @format.map { |k| self[k] }.join(',')
+			"Dialogue: " + @format.map { |k| @data[k] }.join(',')
 		end
 
 		def shift!(msec)
-			self[:Start].adjust!(msec)
-			self[:End].adjust!(msec)
+			@data[:Start].adjust!(msec)
+			@data[:End].adjust!(msec)
 		end
 
 		def showtime
-			self[:End] - self[:Start]
+			@data[:End] - @data[:Start]
 		end
 
 		def info
-			"#{self[:Start].to_seconds}\t#{showtime}\t#{self[:Text]}"
+			"#{@data[:Start].to_seconds}\t#{showtime}\t#{@data[:Text]}"
+		end
+		
+		def [](k)
+			@data[k]
+		end
+		def []=(k, v)
+			@data[k] = v
 		end
 	end
 
-	class Format < Array
-
+	class Format
 		def initialize(line)
-			super()
-			line.sub(/^Format:\s+/, '').split(/\s*,\s*/).each { |e| push(e.strip.to_sym) }
+			@data = []
+			line.sub(/^Format:\s+/, '').split(/\s*,\s*/).each { |e| @data.push(e.strip.to_sym) }
 		end
 
 		def to_s
-			'Format: ' + map { |e| e.to_s }.join(', ')
+			'Format: ' + @data.map { |e| e.to_s }.join(', ')
+		end
+
+		def method_missing(*args, &b)
+			@data.__send__(*args, &b)
 		end
 	end
 
 
 	class Subtitle 
+
+		attr_reader :dialogues
+		attr_reader :content
+
 		def initialize(file)
 			@content   = []
 			@dialogues = []
@@ -111,7 +126,7 @@ module Rasstimer
 				begin 
 					file = File.open(file, 'r')
 				rescue
-					raise "cant open '#{file}' to read"
+					fail "cant open '#{file}' to read"
 				end
 			end
 
@@ -142,11 +157,11 @@ module Rasstimer
 			stop = (@dialogues.length - 1) if stop == -1
 
 			if start.to_i < 0
-				raise "Selected dialogues start index cant be negative"
+				fail "Selected dialogues start index cant be negative"
 			end
 
 			if stop.to_i > (@dialogues.length - 1)
-				raise "Selected dialogues index cant be larger than dialogues count, given: #{stop}, dialogues count: #{@dialogues.length}"
+				fail "Selected dialogues index cant be larger than dialogues count, given: #{stop}, dialogues count: #{@dialogues.length}"
 			end
 			
 			for i in @dialogues[start]...@dialogues[stop]
@@ -156,14 +171,14 @@ module Rasstimer
 
 		def save(file_name)
 			self_opened = false
-			file = file_name if file_name.respond_to? :puts
+			file = file_name if file_name.respond_to? :<<
 
-			unless file_name.respond_to? :puts
+			unless file_name.respond_to? :<<
 				begin 
 					file = File.open(file_name, 'w')
 					self_opened = true
 				rescue
-					raise "cant open '#{file_name}' to write"
+					fail "cant open '#{file_name}' to write"
 				end
 			end
 
